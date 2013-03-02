@@ -361,102 +361,41 @@ var depixel = (function() {
         var nodes = this.nodes;
 
         for (var y = 0; y < h; ++y) {
-            var square = getRect(nodes, 0, y, 2, 2);
-            square[0].unshift(new Node());
-            square[1].unshift(new Node());
-
-            var node = square[0][1];
-            if (square[1][1].canReach(square[0][2])) {
-                if (!node.canReach(square[1][1])) {
-                    node.vertices[2].adjust(-0.25, -0.25);
-                } else {
-                    node.vertices[2].adjust(0.25, 0.25);
-                }
-            }
-
-            if (node.canReach(square[1][2])) {
-                var vertices = node.vertices;
-                var v = vertices[2].clone();
-//                    v.adjust(-0.25, 0.25);
-                square[0][2].vertices[3] = v;
-                vertices.splice(2, 0, v);
-                vertices = square[1][2].vertices;
-                // This is important. We need to keep the order of
-                // vertices somewhat similar to before reshaping.
-                v = vertices.splice(0,1,v).pop();
-                vertices.push(v);
-            }
-            
             for (var x = 0; x < w; ++x) {
                 var rect = getRect(nodes, x, y, 3, 2);
                 var node = rect[0][1];
 
-                if (rect[0][0].canReach(rect[1][1])) {
-                    if (!node.canReach(rect[0][0])) {
-                        node.vertices[3].adjust(0.25, -0.25);
-                    } else {
-                        node.vertices[3].adjust(-0.25, 0.25);
-                    }
-                }
-
-                if (rect[1][1].canReach(rect[0][2])) {
-                    if (!node.canReach(rect[1][1])) {
-                        node.vertices[2].adjust(-0.25, -0.25);
-                    } else {
-                        node.vertices[2].adjust(0.25, 0.25);
-                    }
-                }
-
                 if (node.canReach(rect[1][0])) {
                     var vertices = node.vertices;
-                    var v = vertices[3].clone();
-                    rect[0][0].vertices[2] = v;
-                    vertices.push(v);
+                    var v1 = vertices[3];
+                    var v2 = v1.clone();
+                    v1.adjust(0.25, 0.25);
+                    v2.adjust(-0.25, -0.25);
+
+                    rect[0][0].vertices[2] = v2;
+                    vertices.push(v2);
                     vertices = rect[1][0].vertices;                   
                     // This is important. We need to keep the order of
                     // vertices somewhat similar to before reshaping.
-                    v = vertices.splice(0,1,v).pop();
-                    vertices.push(v);
+                    v2 = vertices.splice(0,1,v2).pop();
+                    vertices.push(v2);                   
                 }
                 
                 if (node.canReach(rect[1][2])) {
                     var vertices = node.vertices;
-                    var v = vertices[2].clone();
-//                    v.adjust(-0.25, 0.25);
-                    rect[0][2].vertices[3] = v;
-                    vertices.splice(2, 0, v);
+                    var v1 = vertices[2];
+                    var v2 = v1.clone();
+                    v1.adjust(-0.25, 0.25);
+                    v2.adjust(0.25, -0.25);
+                    
+                    rect[0][2].vertices[3] = v2;
+                    vertices.splice(2, 0, v2);
                     vertices = rect[1][2].vertices;
                     // This is important. We need to keep the order of
                     // vertices somewhat similar to before reshaping.
-                    v = vertices.splice(0,1,v).pop();
-                    vertices.push(v);
+                    v2 = vertices.splice(0,1,v2).pop();
+                    vertices.push(v2);
                 }
-            }
-            
-            var square = getRect(nodes, x, y, 2, 2);
-            square[0].push(new Node());
-            square[1].push(new Node());
-
-            var node = square[0][1];
-            if (square[0][0].canReach(square[1][1])) {
-                if (!node.canReach(square[0][0])) {
-                    node.vertices[3].adjust(0.25, -0.25);
-                } else {
-                    node.vertices[3].adjust(-0.25, 0.25);
-                }
-            }
-            
-            if (node.canReach(square[1][0])) {
-                var vertices = node.vertices;
-                var v = vertices[3].clone();
-                vertices[3].adjust(0.25,0.25);
-                square[0][0].vertices[2] = v;
-                vertices.push(v);
-                vertices = square[1][0].vertices;                   
-                // This is important. We need to keep the order of
-                // vertices somewhat similar to before reshaping.
-                v = vertices.splice(0,1,v).pop();
-                vertices.push(v);
             }
         }
         
