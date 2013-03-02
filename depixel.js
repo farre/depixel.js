@@ -58,7 +58,7 @@ var depixel = (function() {
         clone : { enumerable : false, value : function clone() {
             return new Vertex(this.x, this.y);
         }}
-        });
+    });
 
     function Node(x, y, color, vertices) {
         this.x = x;
@@ -301,7 +301,10 @@ var depixel = (function() {
                 getDiagonals(this.nodes, this.width - 2, y - 1).forEach(add);
             }
         }
+        
+        return this;
     }
+    
     Graph.prototype.linearize = function linearize() {
         for (var x = 1; x < this.width; ++x) {
             for (var y = 1; y < this.height; ++y) {
@@ -348,6 +351,8 @@ var depixel = (function() {
                 }
             }
         }
+        
+        return this;
     }
 
     Graph.prototype.createVoronoiDiagram = function createVoronoiDiagram() {
@@ -356,13 +361,38 @@ var depixel = (function() {
         var nodes = this.nodes;
 
         for (var y = 0; y < h; ++y) {
+            var square = getRect(nodes, 0, y, 2, 2);
+            square[0].unshift(new Node());
+            square[1].unshift(new Node());
+
+            var node = square[0][1];
+            if (square[1][1].canReach(square[0][2])) {
+                if (!node.canReach(square[1][1])) {
+                    node.vertices[2].adjust(-0.25, -0.25);
+                } else {
+                    node.vertices[2].adjust(0.25, 0.25);
+                }
+            }
+
+            if (node.canReach(square[1][2])) {
+                var vertices = node.vertices;
+                var v = vertices[2].clone();
+//                    v.adjust(-0.25, 0.25);
+                square[0][2].vertices[3] = v;
+                vertices.splice(2, 0, v);
+                vertices = square[1][2].vertices;
+                // This is important. We need to keep the order of
+                // vertices somewhat similar to before reshaping.
+                v = vertices.splice(0,1,v).pop();
+                vertices.push(v);
+            }
+            
             for (var x = 0; x < w; ++x) {
                 var rect = getRect(nodes, x, y, 3, 2);
                 var node = rect[0][1];
 
                 if (rect[0][0].canReach(rect[1][1])) {
-                    if (!rect[0][0].canReach(rect[0][1])
-                    || !rect[0][1].canReach(rect[1][1])) {
+                    if (!node.canReach(rect[0][0])) {
                         node.vertices[3].adjust(0.25, -0.25);
                     } else {
                         node.vertices[3].adjust(-0.25, 0.25);
@@ -370,20 +400,67 @@ var depixel = (function() {
                 }
 
                 if (rect[1][1].canReach(rect[0][2])) {
-                    if (!rect[1][1].canReach(rect[0][1])
-                    || !rect[1][1].canReach(rect[0][2])) {
+                    if (!node.canReach(rect[1][1])) {
                         node.vertices[2].adjust(-0.25, -0.25);
                     } else {
                         node.vertices[2].adjust(0.25, 0.25);
                     }
                 }
 
-                if (rect[0][1].canReach(rect[1][2])) {
-                    var v = node.vertices[2].clone().adjust(-0.25, 0.25);
-                    node.vertices[2].adjust(-0.25, 0.25);
+                if (node.canReach(rect[1][0])) {
+                    var vertices = node.vertices;
+                    var v = vertices[3].clone();
+                    rect[0][0].vertices[2] = v;
+                    vertices.push(v);
+                    vertices = rect[1][0].vertices;                   
+                    // This is important. We need to keep the order of
+                    // vertices somewhat similar to before reshaping.
+                    v = vertices.splice(0,1,v).pop();
+                    vertices.push(v);
+                }
+                
+                if (node.canReach(rect[1][2])) {
+                    var vertices = node.vertices;
+                    var v = vertices[2].clone();
+//                    v.adjust(-0.25, 0.25);
+                    rect[0][2].vertices[3] = v;
+                    vertices.splice(2, 0, v);
+                    vertices = rect[1][2].vertices;
+                    // This is important. We need to keep the order of
+                    // vertices somewhat similar to before reshaping.
+                    v = vertices.splice(0,1,v).pop();
+                    vertices.push(v);
                 }
             }
+            
+            var square = getRect(nodes, x, y, 2, 2);
+            square[0].push(new Node());
+            square[1].push(new Node());
+
+            var node = square[0][1];
+            if (square[0][0].canReach(square[1][1])) {
+                if (!node.canReach(square[0][0])) {
+                    node.vertices[3].adjust(0.25, -0.25);
+                } else {
+                    node.vertices[3].adjust(-0.25, 0.25);
+                }
+            }
+            
+            if (node.canReach(square[1][0])) {
+                var vertices = node.vertices;
+                var v = vertices[3].clone();
+                vertices[3].adjust(0.25,0.25);
+                square[0][0].vertices[2] = v;
+                vertices.push(v);
+                vertices = square[1][0].vertices;                   
+                // This is important. We need to keep the order of
+                // vertices somewhat similar to before reshaping.
+                v = vertices.splice(0,1,v).pop();
+                vertices.push(v);
+            }
         }
+        
+        return this;
     }
 
     return function depixel(data, width, height) {

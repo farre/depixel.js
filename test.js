@@ -39,9 +39,9 @@ function generateChoices(size, choiceValues) {
         for (var j = choices.length - 1; j >= 0; --j) {
             choices[j][i] = choiceValues[0];
             for (var k = 1; k < nChoices; ++k) {
-            var choice = choices[j].slice();
-            choice[i] = choiceValues[k];
-            choices.push(choice);
+                var choice = choices[j].slice();
+                choice[i] = choiceValues[k];
+                choices.push(choice);
             }
         }
     }
@@ -135,8 +135,8 @@ var fn = function (g, i) {
     createCanvas(g);
 }
 
+createCanvas(depixel(new Uint8Array(data1), width, height).createSimilarityGraph().linearize());
 generateTemplateData().forEach(fn);
-
 var scale = 10;
 /*
 document.body.appendChild(drawCanvas(graph, 20));
