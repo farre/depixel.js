@@ -6,24 +6,30 @@ var data1 = [196,196,196,255,196,196,196,255,196,196,196,255,196,196,196,255,196
 var w = [255,255,255,255];
 var b = [0,0,0,255];
 
-var data2 = [ 
+var data2 = [
     b, w, w, w, w, w, b, b,
     w, w, b, b, w, w, w, b,
     w, b, w, w, b, w, w, w,
-    w, b, w, w, b, b, w, w, 
+    w, b, w, w, b, b, w, w,
     w, w, b, b, w, w, b, w,
-    w, w, w, b, w, w, b, w, 
+    w, w, w, b, w, w, b, w,
     b, w, w, w, b, b, w, w,
-    b, b, w, w, w, w, w, w 
+    b, b, w, w, w, w, w, w,
 ].reduce(function (p,c) { return p.concat(c);});
 
-var data3 = [ 
-    w, w, b, b, b, w, 
-    b, b, b, b, b, b, 
-    w, w, b, w, b, b, 
-    w, b, w, b, b, w, 
-    w, b, w, w, w, w, 
-    w, w, b, w, w, w, 
+var data3 = [
+    w, w, b, b, b, w,
+    b, b, b, b, b, b,
+    w, w, b, w, b, b,
+    w, b, w, b, b, w,
+    w, b, w, w, w, w,
+    w, w, b, w, w, w,
+].reduce(function (p,c) { return p.concat(c);});
+
+var data4 = [
+    w, w, w, b,
+    w, w, b, b,
+    w, b, b, b,
 ].reduce(function (p,c) { return p.concat(c);});
 
 //var graph = depixel(new Uint8Array(data1), width, height);
@@ -59,7 +65,7 @@ function generateTemplateData() {
         for (var x = 1; x < 3; ++x) {
             for (var y = 1; y < 2; ++y) {
                 var diagonalNodes = graph.getDiagonals(x - 1, y - 1);
-                
+
                 if (graph.constructor.diagonals(diagonalNodes) > 0) {
                     graphs.push(graph);
                     return;
@@ -67,7 +73,7 @@ function generateTemplateData() {
             }
         }
     };
-    
+
     for (var i = templates.length - 1; i >= 0; --i) {
         var template = templates[i];
         var pixels = new Uint8Array(template.reduce(function (p,c) { return p.concat(c); }));
@@ -86,7 +92,7 @@ function generateTemplateData() {
         }
 
         if (crosses) {
-            var graphChoices = generateChoices(crosses, [[0], [1], [0,1]]);  
+            var graphChoices = generateChoices(crosses, [[0], [1], [0,1]]);
                 while (true) {
                 var choice = graphChoices.pop();
 
@@ -101,7 +107,7 @@ function generateTemplateData() {
                         }
                     }
                 }
-                
+
                 pushGraph(graphs, graph);
 
                 if (graphChoices.length > 0) {
@@ -119,12 +125,12 @@ function generateTemplateData() {
     return graphs;
 }
 
-function createCanvas(graph) {
+function createCanvas(graph, scale) {
     var text = document.createTextNode(" ");
-    document.body.appendChild(drawCanvas(graph, 20))
+    document.body.appendChild(drawCanvas(graph, scale))
     document.body.appendChild(document.createTextNode(" => "));
     graph.createVoronoiDiagram();
-    document.body.appendChild(drawCanvas(graph, 20))
+    document.body.appendChild(drawCanvas(graph, scale))
     document.body.appendChild(document.createTextNode(" "));
     document.body.appendChild(document.createElement("br"));
     document.body.appendChild(document.createElement("br"));
@@ -132,12 +138,13 @@ function createCanvas(graph) {
 
 var fn = function (g, i) { 
     document.body.appendChild(document.createTextNode(i + ". "));
-    createCanvas(g);
-}
+    createCanvas(g, 20);
+};
 
-createCanvas(depixel(new Uint8Array(data1), width, height).createSimilarityGraph().linearize());
+createCanvas(depixel(new Uint8Array(data1), width, height).createSimilarityGraph().linearize(), 20);
+createCanvas(depixel(new Uint8Array(data4), 4, 3).createSimilarityGraph().linearize(), 40);
 generateTemplateData().forEach(fn);
-var scale = 10;
+
 /*
 document.body.appendChild(drawCanvas(graph, 20));
 graph.createSimilarityGraph();

@@ -301,10 +301,10 @@ var depixel = (function() {
                 getDiagonals(this.nodes, this.width - 2, y - 1).forEach(add);
             }
         }
-        
+
         return this;
     }
-    
+
     Graph.prototype.linearize = function linearize() {
         for (var x = 1; x < this.width; ++x) {
             for (var y = 1; y < this.height; ++y) {
@@ -351,8 +351,55 @@ var depixel = (function() {
                 }
             }
         }
-        
+
         return this;
+    }
+
+    var reshape = function reshape(rect) {
+        var node = rect[0][1];
+        if (node.canReach(rect[1][0])) {
+            var vertices = node.vertices;
+            var v1 = vertices[3];
+            var v2 = v1.clone();
+
+            if (!node.canReach(rect[1][1])) {
+                v1.adjust(0.25, 0.25);
+            }
+
+            if (!node.canReach(rect[0][0])) {
+                v2.adjust(-0.25, -0.25);
+            }
+
+            // This is important. We need to keep the order of
+            // vertices somewhat similar to before reshaping.
+            rect[0][0].vertices[2] = v2;
+            vertices.splice(4, 0, v2);
+            vertices = rect[1][0].vertices;
+            v2 = vertices.splice(0,1,v2).pop();
+            vertices.push(v2);
+        }
+
+        if (node.canReach(rect[1][2])) {
+            var vertices = node.vertices;
+            var v1 = vertices[2];
+            var v2 = v1.clone();
+
+            if (!node.canReach(rect[1][1])) {
+                v1.adjust(-0.25, 0.25);
+            }
+
+            if (!node.canReach(rect[0][2])) {
+                v2.adjust(0.25, -0.25);
+            }
+
+            // This is important. We need to keep the order of
+            // vertices somewhat similar to before reshaping.
+            rect[0][2].vertices[3] = v2;
+            vertices.splice(2, 0, v2);
+            vertices = rect[1][2].vertices;
+            v2 = vertices.splice(0,1,v2).pop();
+            vertices.push(v2);
+        }
     }
 
     Graph.prototype.createVoronoiDiagram = function createVoronoiDiagram() {
@@ -361,44 +408,21 @@ var depixel = (function() {
         var nodes = this.nodes;
 
         for (var y = 0; y < h; ++y) {
+            var rect = getRect(nodes, 0, y, 2, 2);
+            rect[0].unshift(new Node());
+            rect[1].unshift(new Node());
+            reshape(rect);
+
             for (var x = 0; x < w; ++x) {
-                var rect = getRect(nodes, x, y, 3, 2);
-                var node = rect[0][1];
-
-                if (node.canReach(rect[1][0])) {
-                    var vertices = node.vertices;
-                    var v1 = vertices[3];
-                    var v2 = v1.clone();
-                    v1.adjust(0.25, 0.25);
-                    v2.adjust(-0.25, -0.25);
-
-                    rect[0][0].vertices[2] = v2;
-                    vertices.push(v2);
-                    vertices = rect[1][0].vertices;                   
-                    // This is important. We need to keep the order of
-                    // vertices somewhat similar to before reshaping.
-                    v2 = vertices.splice(0,1,v2).pop();
-                    vertices.push(v2);                   
-                }
-                
-                if (node.canReach(rect[1][2])) {
-                    var vertices = node.vertices;
-                    var v1 = vertices[2];
-                    var v2 = v1.clone();
-                    v1.adjust(-0.25, 0.25);
-                    v2.adjust(0.25, -0.25);
-                    
-                    rect[0][2].vertices[3] = v2;
-                    vertices.splice(2, 0, v2);
-                    vertices = rect[1][2].vertices;
-                    // This is important. We need to keep the order of
-                    // vertices somewhat similar to before reshaping.
-                    v2 = vertices.splice(0,1,v2).pop();
-                    vertices.push(v2);
-                }
+                reshape(getRect(nodes, x, y, 3, 2));
             }
+
+            rect = getRect(nodes, x, y, 2, 2);
+            rect[0].push(new Node());
+            rect[1].push(new Node());
+            reshape(rect);
         }
-        
+
         return this;
     }
 
