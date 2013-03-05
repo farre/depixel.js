@@ -127,10 +127,12 @@ function generateTemplateData() {
 
 function createCanvas(graph, scale) {
     var text = document.createTextNode(" ");
-    document.body.appendChild(drawCanvas(graph, scale))
+    document.body.appendChild(drawCanvas(graph, scale, false, false))
+    document.body.appendChild(document.createTextNode(" => "));
+    document.body.appendChild(drawCanvas(graph, scale, false, true))
     document.body.appendChild(document.createTextNode(" => "));
     graph.createVoronoiDiagram();
-    document.body.appendChild(drawCanvas(graph, scale))
+    document.body.appendChild(drawCanvas(graph, scale, true, false))
     document.body.appendChild(document.createTextNode(" "));
     document.body.appendChild(document.createElement("br"));
     document.body.appendChild(document.createElement("br"));

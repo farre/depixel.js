@@ -1,5 +1,5 @@
 // -*- Mode: c++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
-function drawCanvas(graph, scale) {
+function drawCanvas(graph, scale, reshaped, similar) {
     var width = graph.width;
     var height = graph.height;
     var nodes = graph.nodes;
@@ -24,7 +24,9 @@ function drawCanvas(graph, scale) {
             }
             context.closePath();
             context.fill();
-            context.stroke();
+            if (reshaped) {
+                context.stroke();
+            }
             var half_scale = scale / 2;
             stroke_color = 'rgba(0,200,0,255)';
             context.strokeStyle = "" + stroke_color;
@@ -38,7 +40,9 @@ function drawCanvas(graph, scale) {
                 context.lineTo(n.x * scale + half_scale, n.y * scale + half_scale);
             }
             context.closePath();
-            context.stroke();
+            if (similar) {
+                context.stroke();
+            }
         }
     }
     return canvas;
