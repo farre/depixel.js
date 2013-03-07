@@ -1,4 +1,4 @@
-// -*- Mode: c++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+// -*- Mode: javascript; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4-*-
 var depixel = (function() {
     "use strict";
 
