@@ -3,7 +3,7 @@ var depixel = (function() {
     "use strict";
 
     function Point() {
-    }
+    };
 
     Point.prototype = Object.create(null, {});
 
@@ -12,7 +12,7 @@ var depixel = (function() {
         this.y = Math.round(y);
         this.u = Math.round(0.492 * (b - y));
         this.v = Math.round(0.877 * (r - y));
-    }
+    };
 
     Color.prototype = Object.create(null, {});
 
@@ -24,27 +24,27 @@ var depixel = (function() {
         var g = y - 0.394 * u - 0.581 * v;
         var b = y + 2.032 * u;
         return [r, g, b].map(Math.round);
-    }
+    };
 
     Color.prototype.toYUV = function toYUV() {
         return [this.y, this.u, this.v];
-    }
+    };
 
     Color.prototype.dissimilar = function dissimilar(color) {
         return Math.abs(this.y - color.y) > 48
             || Math.abs(this.u - color.u) > 7
             || Math.abs(this.v - color.v) > 6;
-    }
+    };
 
     Color.prototype.toString = function toString() {
         var rgb = this.toRGB();
         return 'rgb(' + rgb.join() + ')';
-    }
+    };
 
     function Vertex(x, y) {
         this.x = x;
         this.y = y;
-    }
+    };
 
     Vertex.prototype = Object.create(null, {
         split : { enumerable : false, value : function split(v) {
@@ -66,7 +66,7 @@ var depixel = (function() {
         this.edges = [];
         this.vertices = vertices;
         this.color = color;
-    }
+    };
 
     Node.prototype = Object.create(null, {
         addEdge : { enumerable : false, value : function addEdge(node) {
@@ -83,27 +83,27 @@ var depixel = (function() {
             this.edges.splice(index,1);
             node.removeEdge(this);
         }
-    }
+    };
 
     Node.prototype.addSimilarEdge = function addSimilarEdge(node) {
         if (!this.color.dissimilar(node.color)) {
             this.addEdge(node);
         }
-    }
+    };
 
     Node.prototype.canReach = function canReach(node) {
         return this.edges.indexOf(node) != -1;
-    }
+    };
 
     Node.prototype.valence = function valence() {
         return this.edges.length;
-    }
+    };
 
     Node.prototype.toString = function toString() {
         var str = "(" + [this.x, this.y].join() + ") => ";
         var edges = this.edges.map(function (n) { return "(" + [n.x, n.y].join() + ")"; });
         return str + edges.join();
-    }
+    };
 
     Node.prototype.follow = function follow(node, reverse) {
         var curve = [];
@@ -130,7 +130,7 @@ var depixel = (function() {
         }
 
         return curve;
-    }
+    };
 
     function Graph(pixels, x, y) {
         if (pixels.length != x * y * 4) {
@@ -187,11 +187,11 @@ var depixel = (function() {
 
     function getSquare(nodes, x, y) {
         return [down(nodes, x, y), right(nodes, x, y), down(nodes, x+1, y), right(nodes, x, y+1)];
-    }
+    };
 
     function getDiagonals(nodes, x,y) {
         return [slant(nodes, x, y), rise(nodes, x, y+1)];
-    }
+    };
 
     function getRect(nodes, x, y, w, h) {
         var rect = new Array(h);
@@ -199,33 +199,33 @@ var depixel = (function() {
             rect[i] = nodes[i + y].slice(x, x + w);
         }
         return rect;
-    }
+    };
 
     Graph.prototype.getDiagonals = function getDiagonals(x, y) {
         return [slant(this.nodes, x, y), rise(this.nodes, x, y+1)];
-    }
+    };
 
     Graph.diagonals = function diagonals(diags) {
         var p = diags[0][0].canReach(diags[0][1]);
         var q = diags[1][0].canReach(diags[1][1]);
         return p + q;
-    }
+    };
 
     var reach = function(args) {
         return args[0].canReach(args[1]);
-    }
+    };
 
     var add = function(args) {
         args[0].addSimilarEdge(args[1]);
-    }
+    };
 
     var id = function id(x) {
         return x;
-    }
+    };
 
     var not = function not(x) {
         return !x;
-    }
+    };
 
     var curve = function curve(nodes) {
         var m = nodes[0];
@@ -235,7 +235,7 @@ var depixel = (function() {
             result = n.follow(m).concat(result);
         }
         return result;
-    }
+    };
 
     var getConnected = function getConnected(xmin, xmax, ymin, ymax) {
         var x0 = xmin;
@@ -256,7 +256,7 @@ var depixel = (function() {
             }
             return connected;
         }
-    }
+    };
 
     Graph.prototype.createSimilarityGraph = function createSimilarityGraph() {
         for (var x = 0; x < this.width - 1; ++x) {
@@ -303,7 +303,7 @@ var depixel = (function() {
         }
 
         return this;
-    }
+    };
 
     Graph.prototype.linearize = function linearize() {
         for (var x = 1; x < this.width; ++x) {
@@ -353,7 +353,7 @@ var depixel = (function() {
         }
 
         return this;
-    }
+    };
 
     var reshape = function reshape(rect) {
         var node = rect[0][1];
@@ -400,7 +400,7 @@ var depixel = (function() {
             v2 = vertices.splice(0,1,v2).pop();
             vertices.push(v2);
         }
-    }
+    };
 
     Graph.prototype.createVoronoiDiagram = function createVoronoiDiagram() {
         var w = this.width - 2;
@@ -424,7 +424,7 @@ var depixel = (function() {
         }
 
         return this;
-    }
+    };
 
     return function depixel(data, width, height) {
         var graph = new Graph(data, width, height);
