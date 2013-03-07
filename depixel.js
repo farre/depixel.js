@@ -164,10 +164,33 @@ var depixel = (function() {
 
         this.nodes = nodes;
         this.vertices = nodes;
-    }
+    };
 
     Graph.prototype = Object.create(null, {
-        constructor : { enumerable : false, value : Graph }
+        constructor : { enumerable : false, value : Graph },
+	iterator : { enumerable : false, value : function iterator() {
+	    var x = 0;
+	    var y = 0;
+	    var width = this.width;
+	    var height = this.height;
+	    var nodes = this.nodes;
+	    return Object.create(null, {
+		next : {
+		    enumerable : false,
+		    value : function next() {
+			while (y < height) {
+			    if (x < width) {
+				return nodes[y][x++];
+			    } else {
+				x = 0;
+				++y;
+			    }
+			}
+			return null;
+		    }
+		}
+	    });
+	}}
     });
 
     var createNeighborAccessor = function(x, y) {
