@@ -448,7 +448,21 @@ var depixel = (function() {
 
         return this;
     };
+	
+	Graph.prototype.mergeCells = function mergeCells() {
+		var w = this.width - 2;
+        var h = this.height - 2;
+        var nodes = this.nodes;
+		var current;
+		var graph = []
+		
+        for (var y = 0; y < h; ++y) {			
+            for (var x = 0; x < w; ++x) {
 
+            }
+        }
+	}
+	
     return function depixel(data, width, height) {
         var graph = new Graph(data, width, height);
     //  graph.createSimilarityGraph();
