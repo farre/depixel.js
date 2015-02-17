@@ -77,6 +77,10 @@ var depixel = (function() {
         }}
     });
 
+    Node.prototype.equal = function equal(node) {
+        return this.x === node.x && this.y === node.y;
+    }
+
     Node.prototype.removeEdge = function removeEdge(node) {
         var index = this.edges.indexOf(node);
         if (index !== -1) {
@@ -130,6 +134,38 @@ var depixel = (function() {
         }
 
         return curve;
+    };
+
+    Node.prototype.right = function right() {
+        var self = this;
+        return this.edges.find(function (e) {
+            return self.y === e.y && self.x === (e.x + 1)
+        });
+    };
+
+    Node.prototype.left = function left() {
+        var self = this;
+        return this.edges.find(function (e) {
+            return self.y === e.y && self.x === (e.x - 1)
+        });
+    };
+
+    Node.prototype.up = function up() {
+        var self = this;
+        return this.edges.find(function (e) {
+            return self.x === e.x && self.y === (e.y - 1)
+        });
+    };
+
+    Node.prototype.down = function down() {
+        var self = this;
+        return this.edges.find(function (e) {
+            return self.x === e.x && self.y === (e.y + 1)
+        });
+    };
+
+    Node.prototype.isEdge = function isEdge() {
+        return this.edges.length > 3;
     };
 
     function Graph(pixels, x, y) {
@@ -448,21 +484,104 @@ var depixel = (function() {
 
         return this;
     };
-	
-	Graph.prototype.mergeCells = function mergeCells() {
-		var w = this.width - 2;
-        var h = this.height - 2;
-        var nodes = this.nodes;
-		var current;
-		var graph = []
-		
-        for (var y = 0; y < h; ++y) {			
-            for (var x = 0; x < w; ++x) {
 
-            }
+    Graph.prototype.contour = function contour(startNode) {
+        var UP = 0;
+        var RIGHT = 1;
+        var DOWN = 2;
+        var LEFT = 3;
+
+        var current = startNode;
+        var vertices = [];
+        var start;
+        var next;
+
+        var up, right, down, left;
+
+        if (!current.isEdge() /* || up || left */) {
+            return vertices;
         }
-	}
-	
+
+        var heading = RIGHT;
+        var start = current.vertices[0];
+        var vertex = 0;
+
+        do {
+            switch (heading) {
+            case RIGHT;
+                right = current.right();
+                if (right) {
+                    next = right.up();
+                    if (!next) {
+                        next = right
+                    } else {
+                        heading = UP;
+                    }
+                } else {
+                    next = current.down();
+                    heading = DOWN;
+                }
+                break;
+            case DOWN;
+                down = current.down();
+                if (down) {
+                    next = down.right()
+                    if (!next) {
+                        next = right;
+                    } else {
+                        heading = RIGHT;
+                    }
+                } else {
+                    next = current.left();
+                    heading = LEFT;
+                }
+                break;
+            case LEFT;
+                left = current.left();
+                if (left) {
+                    next = left.down();
+                    if (!next) {
+                        next = left;
+                    } else {
+                        heading = DOWN;
+                    }
+                } else {
+                    next = current.up();
+                    header = UP;
+                }
+                break;
+            case UP;
+                up = current.up();
+                if (up) {
+                    next = up.left();
+                    if (!next) {
+                        next = up;
+                    } else {
+                        heading = LEFT;
+                    }
+                } else {
+                    next = current.up();
+                    heading = RIGHT;
+                }
+                break;
+            }
+
+            // add every vertex of current node from 'vertex' to the first common vertex in current node and next node
+            for (var i = vertext, ilen = current.vertices.length; i < ilen; ++i) {
+                var v = current.vertices[i];
+                var j = next.vertices.indexOf(v);
+                if (j != -1) {
+                    vertex = j;
+                    break;
+                }
+                vertices.push(v);
+            }
+            current = next;
+        } while (!start.equal(current))
+
+        return vertices;
+    };
+
     return function depixel(data, width, height) {
         var graph = new Graph(data, width, height);
     //  graph.createSimilarityGraph();

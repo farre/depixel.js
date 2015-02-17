@@ -136,7 +136,6 @@ function createCanvas(graph, scale) {
     document.body.appendChild(document.createTextNode(" "));
     document.body.appendChild(document.createElement("br"));
     document.body.appendChild(document.createElement("br"));
-	graph.mergeCells();
 }
 
 var fn = function (g, i) { 
