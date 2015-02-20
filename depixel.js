@@ -57,14 +57,17 @@ var depixel = (function() {
         }},
         clone : { enumerable : false, value : function clone() {
             return new Vertex(this.x, this.y);
-        }}
+        }},
+        toString : { enumerable : false, value : function toStrign() {
+                return ["(",this.x, ", ", this.y, ")"].join('');
+        }},
     });
 
     function Node(x, y, color, vertices) {
         this.x = x;
         this.y = y;
         this.edges = [];
-        this.vertices = vertices;
+        this.vertices = vertices || [];
         this.color = color;
     };
 
@@ -137,35 +140,31 @@ var depixel = (function() {
     };
 
     Node.prototype.right = function right() {
-        var self = this;
         return this.edges.find(function (e) {
-            return self.y === e.y && self.x === (e.x + 1)
-        });
+            return this.y === e.y && this.x === (e.x + 1)
+        }, this);
     };
 
     Node.prototype.left = function left() {
-        var self = this;
         return this.edges.find(function (e) {
             return self.y === e.y && self.x === (e.x - 1)
-        });
+        }, this);
     };
 
     Node.prototype.up = function up() {
-        var self = this;
         return this.edges.find(function (e) {
-            return self.x === e.x && self.y === (e.y - 1)
-        });
+            return this.x === e.x && this.y === (e.y - 1)
+        }, this);
     };
 
     Node.prototype.down = function down() {
-        var self = this;
         return this.edges.find(function (e) {
-            return self.x === e.x && self.y === (e.y + 1)
-        });
+            return this.x === e.x && this.y === (e.y + 1)
+        }, this);
     };
 
     Node.prototype.isEdge = function isEdge() {
-        return this.edges.length > 3;
+        return this.edges.length < 4;
     };
 
     function Graph(pixels, x, y) {
@@ -498,7 +497,11 @@ var depixel = (function() {
 
         var up, right, down, left;
 
-        if (!current.isEdge() /* || up || left */) {
+        if (current.valence() === 0) {
+            return current.vertices.slice();
+        }
+
+        if (!current.isEdge() || up || left) {
             return vertices;
         }
 
@@ -508,7 +511,7 @@ var depixel = (function() {
 
         do {
             switch (heading) {
-            case RIGHT;
+            case RIGHT:
                 right = current.right();
                 if (right) {
                     next = right.up();
@@ -522,7 +525,7 @@ var depixel = (function() {
                     heading = DOWN;
                 }
                 break;
-            case DOWN;
+            case DOWN:
                 down = current.down();
                 if (down) {
                     next = down.right()
@@ -536,7 +539,7 @@ var depixel = (function() {
                     heading = LEFT;
                 }
                 break;
-            case LEFT;
+            case LEFT:
                 left = current.left();
                 if (left) {
                     next = left.down();
@@ -550,7 +553,7 @@ var depixel = (function() {
                     header = UP;
                 }
                 break;
-            case UP;
+            case UP:
                 up = current.up();
                 if (up) {
                     next = up.left();
@@ -566,8 +569,12 @@ var depixel = (function() {
                 break;
             }
 
+            if (!next) {
+                continue;
+            }
+
             // add every vertex of current node from 'vertex' to the first common vertex in current node and next node
-            for (var i = vertext, ilen = current.vertices.length; i < ilen; ++i) {
+            for (var i = vertex, ilen = current.vertices.length; i < ilen; ++i) {
                 var v = current.vertices[i];
                 var j = next.vertices.indexOf(v);
                 if (j != -1) {

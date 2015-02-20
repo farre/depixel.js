@@ -48,3 +48,33 @@ function drawCanvas(graph, scale, reshaped, similar) {
 
     return canvas;
 }
+
+function createEmptyCanvas(graph, scale) {
+    var width = graph.width;
+    var height = graph.height;
+    var canvas = document.createElement('canvas');
+    canvas.width = width * scale;
+    canvas.height = height * scale;
+
+    return canvas;
+}
+
+function drawContour(canvas, vertices, color, scale) {
+    var context = canvas.getContext('2d');
+    context.strokeStyle = "black";
+
+    var stroke_color = 'rgba(255,75,75,255)';
+    context.strokeStyle = "" + stroke_color;
+    context.fillStyle = "" + color;
+    context.beginPath();
+    var v = vertices[0];
+    context.moveTo(v.x * scale, v.y * scale);
+    for (var i = 1; i < vertices.length; ++i) {
+        v = vertices[i];
+        context.lineTo(v.x * scale, v.y * scale);
+    }
+    context.closePath();
+    context.fill();
+
+    return canvas;
+}
