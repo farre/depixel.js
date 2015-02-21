@@ -137,11 +137,18 @@ function createCanvas(graph, scale) {
 
     var it = graph.iterator();
 
+    var canvas = createEmptyCanvas(graph, scale);
+    document.body.appendChild(canvas);
+    document.body.appendChild(document.createTextNode(" "));
+    document.body.appendChild(document.createElement("br"));
+    document.body.appendChild(document.createElement("br"));
+
     while (node = it.next()) {
-        document.body.appendChild(drawContour(createEmptyCanvas(graph, scale), graph.contour(node), node.color, scale))
-        document.body.appendChild(document.createTextNode(" "));
-        document.body.appendChild(document.createElement("br"));
-        document.body.appendChild(document.createElement("br"));
+        var vertices = graph.contour(node);
+        if (vertices.length > 0) {
+
+            drawContour(canvas, vertices, node.color, scale)
+        }
     }
 }
 
@@ -150,8 +157,9 @@ var fn = function (g, i) {
     createCanvas(g, 20);
 };
 
-//createCanvas(depixel(new Uint8Array(data1), width, height).createSimilarityGraph().linearize(), 20);
-createCanvas(depixel(new Uint8Array(data2), 8, 8).createSimilarityGraph().linearize(), 20);
+alert("")
+createCanvas(depixel(new Uint8Array(data1), width, height).createSimilarityGraph().linearize(), 20);
+//createCanvas(depixel(new Uint8Array(data2), 8, 8).createSimilarityGraph().linearize(), 20);
 //createCanvas(depixel(new Uint8Array(data4), 4, 3).createSimilarityGraph().linearize(), 40);
 //generateTemplateData().forEach(fn);
 

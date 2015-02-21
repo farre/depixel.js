@@ -58,8 +58,11 @@ var depixel = (function() {
         clone : { enumerable : false, value : function clone() {
             return new Vertex(this.x, this.y);
         }},
-        toString : { enumerable : false, value : function toStrign() {
-                return ["(",this.x, ", ", this.y, ")"].join('');
+        toString : { enumerable : false, value : function toString() {
+            return ["(",this.x, ", ", this.y, ")"].join('');
+        }},
+        equals : { enumerable : false, value : function equals(other) {
+            return this.x === other.x && this.y === other.y;
         }},
     });
 
@@ -77,12 +80,11 @@ var depixel = (function() {
                 this.edges.push(node);
                 node.addEdge(this);
             }
-        }}
+        }},
+        equals : { enumerable : false, value : function equals(node) {
+            return this.x === node.x && this.y === node.y;
+        }},
     });
-
-    Node.prototype.equal = function equal(node) {
-        return this.x === node.x && this.y === node.y;
-    }
 
     Node.prototype.removeEdge = function removeEdge(node) {
         var index = this.edges.indexOf(node);
@@ -139,27 +141,33 @@ var depixel = (function() {
         return curve;
     };
 
+    Node.prototype.edge = function edge(horizontal, vertical) {
+        return this.edges.find(function (e) {
+            return this.x === (e.x - Math.sign(horizontal)) && this.y === (e.y - Math.sign(vertical))
+        }, this);
+    };
+
     Node.prototype.right = function right() {
         return this.edges.find(function (e) {
-            return this.y === e.y && this.x === (e.x + 1)
+            return this.y === e.y && this.x === (e.x - 1)
         }, this);
     };
 
     Node.prototype.left = function left() {
         return this.edges.find(function (e) {
-            return self.y === e.y && self.x === (e.x - 1)
+            return this.y === e.y && this.x === (e.x + 1)
         }, this);
     };
 
     Node.prototype.up = function up() {
         return this.edges.find(function (e) {
-            return this.x === e.x && this.y === (e.y - 1)
+            return this.x === e.x && this.y === (e.y + 1)
         }, this);
     };
 
     Node.prototype.down = function down() {
         return this.edges.find(function (e) {
-            return this.x === e.x && this.y === (e.y + 1)
+            return this.x === e.x && this.y === (e.y - 1)
         }, this);
     };
 
@@ -486,9 +494,13 @@ var depixel = (function() {
 
     Graph.prototype.contour = function contour(startNode) {
         var UP = 0;
-        var RIGHT = 1;
-        var DOWN = 2;
-        var LEFT = 3;
+        var UP_RIGHT = 1;
+        var RIGHT = 2;
+        var DOWN_RIGHT = 3;
+        var DOWN = 4;
+        var DOWN_LEFT = 5;
+        var LEFT = 6;
+        var UP_LEFT = 7;
 
         var current = startNode;
         var vertices = [];
@@ -501,70 +513,70 @@ var depixel = (function() {
             return current.vertices.slice();
         }
 
-        if (!current.isEdge() || up || left) {
+        if (!current.isEdge() || current.isdrawn || [[-1,-1],[0,-1],[1,-2]].some(function (e) {
+            return this.edge.apply(this, e) != undefined;
+        }, current)) {
             return vertices;
         }
 
-        var heading = RIGHT;
-        var start = current.vertices[0];
+        var heading = UP_RIGHT;
         var vertex = 0;
+        var currentVertex;
+        var startVertex = current.vertices[0];
 
-        do {
+outer:
+        while (true) {
+            current.isdrawn = true;
+            next = undefined;
             switch (heading) {
+            case UP_RIGHT:
+                next = current.edge(1,-1);
+                if (next) {
+                    heading = UP_LEFT;
+                    break;
+                }
             case RIGHT:
-                right = current.right();
-                if (right) {
-                    next = right.up();
-                    if (!next) {
-                        next = right
-                    } else {
-                        heading = UP;
-                    }
-                } else {
-                    next = current.down();
-                    heading = DOWN;
+                next = current.edge(1,0);
+                if (next) {
+                    heading = UP;
+                    break;
                 }
-                break;
+            case DOWN_RIGHT:
+                next = current.edge(1,1);
+                if (next) {
+                    heading = UP_RIGHT;
+                    break;
+                }
             case DOWN:
-                down = current.down();
-                if (down) {
-                    next = down.right()
-                    if (!next) {
-                        next = right;
-                    } else {
-                        heading = RIGHT;
-                    }
-                } else {
-                    next = current.left();
-                    heading = LEFT;
-                }
-                break;
-            case LEFT:
-                left = current.left();
-                if (left) {
-                    next = left.down();
-                    if (!next) {
-                        next = left;
-                    } else {
-                        heading = DOWN;
-                    }
-                } else {
-                    next = current.up();
-                    header = UP;
-                }
-                break;
-            case UP:
-                up = current.up();
-                if (up) {
-                    next = up.left();
-                    if (!next) {
-                        next = up;
-                    } else {
-                        heading = LEFT;
-                    }
-                } else {
-                    next = current.up();
+                next = current.edge(0,1);
+                if (next) {
                     heading = RIGHT;
+                    break;
+                }
+            case DOWN_LEFT:
+                next = current.edge(-1,1);
+                if (next) {
+                    heading = DOWN_RIGHT;
+                    break;
+                }
+            case LEFT:
+                next = current.edge(-1,0);
+                if (next) {
+                    heading = DOWN;
+                    break;
+                }
+            case UP_LEFT:
+                next = current.edge(-1,-1);
+                if (next) {
+                    heading = DOWN_LEFT;
+                    break;
+                }
+            case UP:
+                next = current.edge(0,-1);
+                if (next) {
+                    heading = LEFT;
+                } else {
+                    heading = UP_RIGHT;
                 }
                 break;
             }
@@ -574,17 +586,25 @@ var depixel = (function() {
             }
 
             // add every vertex of current node from 'vertex' to the first common vertex in current node and next node
-            for (var i = vertex, ilen = current.vertices.length; i < ilen; ++i) {
-                var v = current.vertices[i];
-                var j = next.vertices.indexOf(v);
+            var i = vertex, ilen = current.vertices.length;
+
+            while (true) {
+                currentVertex = current.vertices[i++ % ilen];
+                var j = next.vertices.indexOf(currentVertex);
+
                 if (j != -1) {
                     vertex = j;
                     break;
                 }
-                vertices.push(v);
+                vertices.push(currentVertex);
+
+                if (startVertex.equals(next.vertices[vertext])) {
+                    break outer;
+                }
             }
+
             current = next;
-        } while (!start.equal(current))
+        }
 
         return vertices;
     };
