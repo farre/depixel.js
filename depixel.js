@@ -513,20 +513,19 @@ var depixel = (function() {
             return current.vertices.slice();
         }
 
-        if (!current.isEdge() || current.isdrawn || [[-1,-1],[0,-1],[1,-2]].some(function (e) {
+        if (!current.isEdge() || [[-1,-1],[0,-1],[1,-1]].some(function (e) {
             return this.edge.apply(this, e) != undefined;
         }, current)) {
             return vertices;
         }
 
+        var lastIteration = false;
         var heading = UP_RIGHT;
         var vertex = 0;
         var currentVertex;
         var startVertex = current.vertices[0];
 
-outer:
         while (true) {
-            current.isdrawn = true;
             next = undefined;
             switch (heading) {
             case UP_RIGHT:
@@ -596,11 +595,16 @@ outer:
                     vertex = j;
                     break;
                 }
-                vertices.push(currentVertex);
 
-                if (startVertex.equals(next.vertices[vertext])) {
-                    break outer;
-                }
+                vertices.push(currentVertex);
+            }
+
+            if (lastIteration) {
+                break;
+            }
+
+            if (startNode.equals(next)) {
+                lastIteration = true;
             }
 
             current = next;

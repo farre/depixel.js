@@ -158,8 +158,8 @@ var fn = function (g, i) {
 };
 
 alert("")
-createCanvas(depixel(new Uint8Array(data1), width, height).createSimilarityGraph().linearize(), 20);
-//createCanvas(depixel(new Uint8Array(data2), 8, 8).createSimilarityGraph().linearize(), 20);
+//createCanvas(depixel(new Uint8Array(data1), width, height).createSimilarityGraph().linearize(), 20);
+createCanvas(depixel(new Uint8Array(data2), 8, 8).createSimilarityGraph().linearize(), 20);
 //createCanvas(depixel(new Uint8Array(data4), 4, 3).createSimilarityGraph().linearize(), 40);
 //generateTemplateData().forEach(fn);
 
