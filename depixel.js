@@ -72,6 +72,7 @@ var depixel = (function() {
         this.edges = [];
         this.vertices = vertices || [];
         this.color = color;
+        this.marked = false;
     };
 
     Node.prototype = Object.create(null, {
@@ -513,11 +514,13 @@ var depixel = (function() {
             return current.vertices.slice();
         }
 
-        if (!current.isEdge() || [[-1,-1],[0,-1],[1,-1]].some(function (e) {
+        if (current.marked || !current.isEdge() || [[-1,-1],[0,-1],[1,-1]].some(function (e) {
             return this.edge.apply(this, e) != undefined;
         }, current)) {
             return vertices;
         }
+
+        var marked = [];
 
         var lastIteration = false;
         var heading = UP_RIGHT;
@@ -526,6 +529,9 @@ var depixel = (function() {
         var startVertex = current.vertices[0];
 
         while (true) {
+            current.marked = true;
+            marked.push(current);
+
             next = undefined;
             switch (heading) {
             case UP_RIGHT:
@@ -609,6 +615,15 @@ var depixel = (function() {
 
             current = next;
         }
+
+        while (marked.length != 0) {
+            var mark = marked.pop();
+            var unmarkedNeighbors = mark.edges.filter(function (e) { return !e.marked });
+            unmarkedNeighbors.forEach(function (e) { e.marked = true });
+            marked.push.apply(marked, unmarkedNeighbors);
+        }
+
+        alert (vertices)
 
         return vertices;
     };

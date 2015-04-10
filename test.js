@@ -32,6 +32,14 @@ var data4 = [
     w, b, b, b,
 ].reduce(function (p,c) { return p.concat(c);});
 
+var data5 = [
+    w, w, w,
+    w, b, w,
+    w, b, w,
+    w, b, w,
+    w, w, w,
+].reduce(function (p,c) { return p.concat(c);});
+
 //var graph = depixel(new Uint8Array(data1), width, height);
 //var graph = depixel(new Uint8Array(data2), 8, 8);
 //var graph = depixel(new Uint8Array(data3), 6, 6);
@@ -157,12 +165,16 @@ var fn = function (g, i) {
     createCanvas(g, 20);
 };
 
-alert("")
+try {
 //createCanvas(depixel(new Uint8Array(data1), width, height).createSimilarityGraph().linearize(), 20);
-createCanvas(depixel(new Uint8Array(data2), 8, 8).createSimilarityGraph().linearize(), 20);
+//createCanvas(depixel(new Uint8Array(data2), 8, 8).createSimilarityGraph().linearize(), 20);
 //createCanvas(depixel(new Uint8Array(data4), 4, 3).createSimilarityGraph().linearize(), 40);
+createCanvas(depixel(new Uint8Array(data5), 3, 5).createSimilarityGraph().linearize(), 40);
 //generateTemplateData().forEach(fn);
-
+}
+catch (e) {
+    alert(e.message)
+}
 /*
 document.body.appendChild(drawCanvas(graph, 20));
 graph.createSimilarityGraph();
