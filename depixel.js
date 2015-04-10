@@ -522,11 +522,11 @@ var depixel = (function() {
 
         var marked = [];
 
-        var lastIteration = false;
         var heading = UP_RIGHT;
         var vertex = 0;
         var currentVertex;
         var startVertex = current.vertices[0];
+        var previous = null;
 
         while (true) {
             current.marked = true;
@@ -593,6 +593,11 @@ var depixel = (function() {
             // add every vertex of current node from 'vertex' to the first common vertex in current node and next node
             var i = vertex, ilen = current.vertices.length;
 
+            if (next == previous) {
+                currentVertex = current.vertices[i++ % ilen];
+                vertices.push(currentVertex);
+            }
+
             while (true) {
                 currentVertex = current.vertices[i++ % ilen];
                 var j = next.vertices.indexOf(currentVertex);
@@ -605,14 +610,13 @@ var depixel = (function() {
                 vertices.push(currentVertex);
             }
 
-            if (lastIteration) {
-                break;
-            }
-
             if (startNode.equals(next)) {
-                lastIteration = true;
+                currentVertex = next.vertices[vertex];
+                vertices.push(currentVertex);
+                break
             }
 
+            previous = current;
             current = next;
         }
 
