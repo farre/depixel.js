@@ -5,6 +5,9 @@ var data1 = [196,196,196,255,196,196,196,255,196,196,196,255,196,196,196,255,196
 
 var w = [255,255,255,255];
 var b = [0,0,0,255];
+var red = [255,0,0,255];
+var green = [0,255,0,255];
+var blue = [0,0,255,255];
 
 var data2 = [
     b, w, w, w, w, w, b, b,
@@ -38,6 +41,24 @@ var data5 = [
     w, b, w,
     w, b, w,
     w, w, w,
+].reduce(function (p,c) { return p.concat(c);});
+
+var data6 = [
+    w, w, w, w, w,
+    w, w, b, w, w,
+    w, b, w, b, w,
+    w, b, w, b, w,
+    w, b, w, b, w,
+    w, w, w, b, w,
+    w, w, w, w, w,
+].reduce(function (p,c) { return p.concat(c);});
+
+var data7 = [
+    w, w,     w,    w, 
+    w, red,   red,  w,
+    w, green, blue, w,
+    w, green, blue, w,
+    w, w,     w,    w,
 ].reduce(function (p,c) { return p.concat(c);});
 
 //var graph = depixel(new Uint8Array(data1), width, height);
@@ -166,14 +187,16 @@ var fn = function (g, i) {
 };
 
 try {
-//createCanvas(depixel(new Uint8Array(data1), width, height).createSimilarityGraph().linearize(), 20);
-//createCanvas(depixel(new Uint8Array(data2), 8, 8).createSimilarityGraph().linearize(), 20);
-//createCanvas(depixel(new Uint8Array(data4), 4, 3).createSimilarityGraph().linearize(), 40);
-createCanvas(depixel(new Uint8Array(data5), 3, 5).createSimilarityGraph().linearize(), 40);
-//generateTemplateData().forEach(fn);
+createCanvas(depixel(new Uint8Array(data1), width, height).createSimilarityGraph().linearize(), 10);
+createCanvas(depixel(new Uint8Array(data2), 8, 8).createSimilarityGraph().linearize(), 20);
+createCanvas(depixel(new Uint8Array(data4), 4, 3).createSimilarityGraph().linearize(), 20);
+createCanvas(depixel(new Uint8Array(data5), 3, 5).createSimilarityGraph().linearize(), 20);
+createCanvas(depixel(new Uint8Array(data6), 5, 7).createSimilarityGraph().linearize(), 20);
+createCanvas(depixel(new Uint8Array(data7), 4, 5).createSimilarityGraph().linearize(), 20);
+generateTemplateData().forEach(fn);
 }
 catch (e) {
-    alert(e.message)
+    alert(["row. ", e.lineNumber, ", column: ", e.columnNumber, ", message: ", e.message].join(''))
 }
 /*
 document.body.appendChild(drawCanvas(graph, 20));

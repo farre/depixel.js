@@ -593,7 +593,7 @@ var depixel = (function() {
             // add every vertex of current node from 'vertex' to the first common vertex in current node and next node
             var i = vertex, ilen = current.vertices.length;
 
-            if (next == previous) {
+            if (previous && next.equals(previous)) {
                 currentVertex = current.vertices[i++ % ilen];
                 vertices.push(currentVertex);
             }
@@ -610,10 +610,14 @@ var depixel = (function() {
                 vertices.push(currentVertex);
             }
 
-            if (startNode.equals(next)) {
-                currentVertex = next.vertices[vertex];
-                vertices.push(currentVertex);
-                break
+            if (startNode.equals(next) && startNode.edges.every(function (e) { return e.marked || !e.isEdge(); })) {
+                i = vertex;
+                ilen = next.vertices.length;
+                while (i < ilen) {
+                    currentVertex = next.vertices[i++];
+                    vertices.push(currentVertex);
+                }
+                break;
             }
 
             previous = current;
@@ -622,12 +626,10 @@ var depixel = (function() {
 
         while (marked.length != 0) {
             var mark = marked.pop();
-            var unmarkedNeighbors = mark.edges.filter(function (e) { return !e.marked });
+            var unmarkedNeighbors = mark.edges.filter(function (e) { return !e.marked; });
             unmarkedNeighbors.forEach(function (e) { e.marked = true });
             marked.push.apply(marked, unmarkedNeighbors);
         }
-
-        alert (vertices)
 
         return vertices;
     };
