@@ -73,6 +73,9 @@ var depixel = (function() {
             this.edges.push(other);
             other.addEdge(this);
         }},
+        valence : { enumerable : false, value : function addEdge(other) {
+            return this.vertices.length;
+        }},
     });
 
     function Node(x, y, color, vertices) {
@@ -651,6 +654,32 @@ var depixel = (function() {
         return connectVertices(vertices);
     };
 
+    function Path() {
+        this.vertices = [];
+    };
+
+    Path.prototype = Object.create(null, {
+        push : { enumerable : false, value : function push(v) {
+            this.vertices.push(v);
+            // v.addPath(this);
+        }},
+        splitAt : { enumerable : false, value : function splitAt(i) {
+            var p = new Path();
+            p.vertices = this.vertices.slice(i);
+            this.vertices.length = i + 1;
+            p.vertices.forEach(function (v) {
+                // v.removePath(this);
+                // v.addPath(p);
+            });
+        }},
+    });
+
+    Graph.prototype.paths = function paths(contour) {
+        var p = new Path();
+
+        
+    }
+    
     return function depixel(data, width, height) {
         var graph = new Graph(data, width, height);
     //  graph.createSimilarityGraph();
