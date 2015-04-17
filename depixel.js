@@ -44,6 +44,7 @@ var depixel = (function() {
     function Vertex(x, y) {
         this.x = x;
         this.y = y;
+        this.edges = [];
     };
 
     Vertex.prototype = Object.create(null, {
@@ -63,6 +64,14 @@ var depixel = (function() {
         }},
         equals : { enumerable : false, value : function equals(other) {
             return this.x === other.x && this.y === other.y;
+        }},
+        addEdge : { enumerable : false, value : function addEdge(other) {
+            if (this.edges.indexOf(other) != -1) {
+                return;
+            }
+
+            this.edges.push(other);
+            other.addEdge(this);
         }},
     });
 
@@ -493,6 +502,14 @@ var depixel = (function() {
         return this;
     };
 
+    function connectVertices(vertices) {
+        var l = vertices.length;
+        vertices.forEach(function (e, i, a) {
+            e.addEdge(a[(i+1) % l]);
+        });
+        return vertices;
+    }
+
     Graph.prototype.contour = function contour(startNode) {
         var UP = 0;
         var UP_RIGHT = 1;
@@ -511,7 +528,7 @@ var depixel = (function() {
         var up, right, down, left;
 
         if (current.valence() === 0) {
-            return current.vertices.slice();
+            return connectVertices(current.vertices.slice());
         }
 
         if (current.marked || !current.isEdge() || [[-1,-1],[0,-1],[1,-1]].some(function (e) {
@@ -631,7 +648,7 @@ var depixel = (function() {
             marked.push.apply(marked, unmarkedNeighbors);
         }
 
-        return vertices;
+        return connectVertices(vertices);
     };
 
     return function depixel(data, width, height) {
