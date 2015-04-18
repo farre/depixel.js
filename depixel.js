@@ -14,32 +14,29 @@ var depixel = (function() {
         this.v = Math.round(0.877 * (r - y));
     };
 
-    Color.prototype = Object.create(null, {});
-
-    Color.prototype.toRGB = function toRGB() {
-        var y = this.y;
-        var u = this.u;
-        var v = this.v;
-        var r = y + 1.140 * v;
-        var g = y - 0.394 * u - 0.581 * v;
-        var b = y + 2.032 * u;
-        return [r, g, b].map(Math.round);
-    };
-
-    Color.prototype.toYUV = function toYUV() {
-        return [this.y, this.u, this.v];
-    };
-
-    Color.prototype.dissimilar = function dissimilar(color) {
+    Color.prototype = Object.create(null, {
+        toRGB : { enumerable : false, value : function toRGB() {
+            var y = this.y;
+            var u = this.u;
+            var v = this.v;
+            var r = y + 1.140 * v;
+            var g = y - 0.394 * u - 0.581 * v;
+            var b = y + 2.032 * u;
+            return [r, g, b].map(Math.round);
+        }},
+        toYUV : { enumerable : false, value : function toYUV() {
+            return [this.y, this.u, this.v];
+        }},
+        dissimilar : { enumerable : false, value : function dissimilar(color) {
         return Math.abs(this.y - color.y) > 48
-            || Math.abs(this.u - color.u) > 7
-            || Math.abs(this.v - color.v) > 6;
-    };
-
-    Color.prototype.toString = function toString() {
-        var rgb = this.toRGB();
-        return 'rgb(' + rgb.join() + ')';
-    };
+                || Math.abs(this.u - color.u) > 7
+                || Math.abs(this.v - color.v) > 6;
+        }},
+        toString : { enumerable : false, value : function toString() {
+            var rgb = this.toRGB();
+            return 'rgb(' + rgb.join() + ')';
+        }},
+    });
 
     function Vertex(x, y) {
         this.x = x;
@@ -531,7 +528,7 @@ var depixel = (function() {
         var up, right, down, left;
 
         if (current.valence() === 0) {
-            return connectVertices(current.vertices.slice());
+            return current.vertices.slice();
         }
 
         if (current.marked || !current.isEdge() || [[-1,-1],[0,-1],[1,-1]].some(function (e) {
@@ -651,7 +648,7 @@ var depixel = (function() {
             marked.push.apply(marked, unmarkedNeighbors);
         }
 
-        return connectVertices(vertices);
+        return vertices;
     };
 
     function Path() {
