@@ -54,11 +54,20 @@ var data6 = [
 ].reduce(function (p,c) { return p.concat(c);});
 
 var data7 = [
-    w, w,     w,    w, 
+    w, w,     w,    w,
     w, red,   red,  w,
     w, green, blue, w,
     w, green, blue, w,
     w, w,     w,    w,
+].reduce(function (p,c) { return p.concat(c);});
+
+var data8 = [
+    w, w, w, w, w,
+    w, w, w, w, b,
+    w, w, w, b, b,
+    w, w, b, b, b,
+    w, b, b, b, b,
+    b, b, b, b, b,
 ].reduce(function (p,c) { return p.concat(c);});
 
 //var graph = depixel(new Uint8Array(data1), width, height);
@@ -187,13 +196,14 @@ var fn = function (g, i) {
 };
 
 try {
-createCanvas(depixel(new Uint8Array(data1), width, height).createSimilarityGraph().linearize(), 10);
-createCanvas(depixel(new Uint8Array(data2), 8, 8).createSimilarityGraph().linearize(), 20);
-createCanvas(depixel(new Uint8Array(data4), 4, 3).createSimilarityGraph().linearize(), 20);
-createCanvas(depixel(new Uint8Array(data5), 3, 5).createSimilarityGraph().linearize(), 20);
-createCanvas(depixel(new Uint8Array(data6), 5, 7).createSimilarityGraph().linearize(), 20);
-createCanvas(depixel(new Uint8Array(data7), 4, 5).createSimilarityGraph().linearize(), 20);
-generateTemplateData().forEach(fn);
+    createCanvas(depixel(new Uint8Array(data1), width, height).createSimilarityGraph().linearize(), 10);
+    createCanvas(depixel(new Uint8Array(data2), 8, 8).createSimilarityGraph().linearize(), 20);
+    createCanvas(depixel(new Uint8Array(data4), 4, 3).createSimilarityGraph().linearize(), 20);
+    createCanvas(depixel(new Uint8Array(data5), 3, 5).createSimilarityGraph().linearize(), 20);
+    createCanvas(depixel(new Uint8Array(data6), 5, 7).createSimilarityGraph().linearize(), 20);
+    createCanvas(depixel(new Uint8Array(data7), 4, 5).createSimilarityGraph().linearize(), 20);
+    createCanvas(depixel(new Uint8Array(data8), 5, 6).createSimilarityGraph().linearize(), 20);
+    generateTemplateData().forEach(fn);
 }
 catch (e) {
     alert(["row. ", e.lineNumber, ", column: ", e.columnNumber, ", message: ", e.message].join(''))
