@@ -1,250 +1,291 @@
-// -*- Mode: javascript; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4-*-
+// -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2-*-
 var depixel = (function() {
-    "use strict";
+  "use strict";
 
-    function Point() {
-    };
+  class Color {
+    constructor([r, g, b]) {
+      var y = 0.299 * r + 0.587 * g + 0.114 * b;
+      this.y = Math.round(y);
+      this.u = Math.round(0.492 * (b - y));
+      this.v = Math.round(0.877 * (r - y));
+    }
 
-    Point.prototype = Object.create(null, {});
+    get rgb() {
+      var {y, u, v} = this;
+      var r = y + 1.140 * v;
+      var g = y - 0.394 * u - 0.581 * v;
+      var b = y + 2.032 * u;
+      return [r, g, b].map(Math.round);
+    }
 
-    function Color(r, g, b) {
-        var y = 0.299 * r + 0.587 * g + 0.114 * b;
-        this.y = Math.round(y);
-        this.u = Math.round(0.492 * (b - y));
-        this.v = Math.round(0.877 * (r - y));
-    };
+    dissimilar(color) {
+      return Math.abs(this.y - color.y) > 48
+          || Math.abs(this.u - color.u) > 7
+          || Math.abs(this.v - color.v) > 6;
+    }
 
-    Color.prototype = Object.create(null, {
-        toRGB : { enumerable : false, value : function toRGB() {
-            var y = this.y;
-            var u = this.u;
-            var v = this.v;
-            var r = y + 1.140 * v;
-            var g = y - 0.394 * u - 0.581 * v;
-            var b = y + 2.032 * u;
-            return [r, g, b].map(Math.round);
-        }},
-        toYUV : { enumerable : false, value : function toYUV() {
-            return [this.y, this.u, this.v];
-        }},
-        dissimilar : { enumerable : false, value : function dissimilar(color) {
-        return Math.abs(this.y - color.y) > 48
-                || Math.abs(this.u - color.u) > 7
-                || Math.abs(this.v - color.v) > 6;
-        }},
-        toString : { enumerable : false, value : function toString() {
-            var rgb = this.toRGB();
-            return 'rgb(' + rgb.join() + ')';
-        }},
-    });
+    toString() {
+      return 'rgb(' + this.rgb.join() + ')';
+    }
+  }
 
-    function Vertex(x, y) {
-        this.x = x;
-        this.y = y;
-        this.edges = [];
-    };
+  class Vertex {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.edges = [];
+    }
 
-    Vertex.prototype = Object.create(null, {
-        split : { enumerable : false, value : function split(v) {
-            return new Vertex((this.x + v.x) / 2, (this.y + v.y) / 2);
-        }},
-        adjust : { enumerable : false, value : function adjust(x, y) {
-            this.x += x;
-            this.y += y;
-            return this;
-        }},
-        clone : { enumerable : false, value : function clone() {
-            return new Vertex(this.x, this.y);
-        }},
-        toString : { enumerable : false, value : function toString() {
-            return ["(",this.x, ", ", this.y, ")"].join('');
-        }},
-        equals : { enumerable : false, value : function equals(other) {
-            return this.x === other.x && this.y === other.y;
-        }},
-        addEdge : { enumerable : false, value : function addEdge(other) {
-            if (this.edges.indexOf(other) != -1) {
-                return;
-            }
+    split(v) {
+      return new Vertex((this.x + v.x) / 2, (this.y + v.y) / 2);
+    }
 
-            this.edges.push(other);
-            other.addEdge(this);
-        }},
-        valence : { enumerable : false, value : function addEdge(other) {
-            return this.vertices.length;
-        }},
-    });
+    adjust(x, y) {
+      this.x += x;
+      this.y += y;
+      return this;
+    }
 
-    function Node(x, y, color, vertices) {
-        this.x = x;
-        this.y = y;
-        this.edges = [];
-        this.vertices = vertices || [];
-        this.color = color;
-        this.marked = false;
-    };
+    clone() {
+      return new Vertex(this.x, this.y);
+    }
 
-    Node.prototype = Object.create(null, {
-        addEdge : { enumerable : false, value : function addEdge(node) {
-            if (this.edges.indexOf(node) === -1) {
-                this.edges.push(node);
-                node.addEdge(this);
-            }
-        }},
-        equals : { enumerable : false, value : function equals(node) {
-            return this.x === node.x && this.y === node.y;
-        }},
-    });
+    equals(other) {
+      return this.x === other.x && this.y === other.y;
+    }
 
-    Node.prototype.removeEdge = function removeEdge(node) {
-        var index = this.edges.indexOf(node);
-        if (index !== -1) {
-            this.edges.splice(index,1);
-            node.removeEdge(this);
-        }
-    };
+    addEdge(other) {
+      if (this.edges.indexOf(other) != -1) {
+        return;
+      }
 
-    Node.prototype.addSimilarEdge = function addSimilarEdge(node) {
-        if (!this.color.dissimilar(node.color)) {
-            this.addEdge(node);
-        }
-    };
+      this.edges.push(other);
+      other.addEdge(this);
+    }
 
-    Node.prototype.canReach = function canReach(node) {
-        return this.edges.indexOf(node) != -1;
-    };
+    valence() {
+      return this.vertices.length;
+    }
+  }
 
-    Node.prototype.valence = function valence() {
-        return this.edges.length;
-    };
+  class Node {
+    constructor(x, y, color, vertices) {
+      this.x = x;
+      this.y = y;
+      this.edges = [];
+      this.vertices = vertices || [];
+      this.color = color;
+      this.marked = false;
+    }
 
-    Node.prototype.toString = function toString() {
-        var str = "(" + [this.x, this.y].join() + ") => ";
-        var edges = this.edges.map(function (n) { return "(" + [n.x, n.y].join() + ")"; });
-        return str + edges.join();
-    };
+    relativePosition({x, y}) {
+      var dy = y - this.y;
+      var dx = x - this.x;
+      return (dx + dy * 3 + 8) % 9;
+    }
 
-    Node.prototype.follow = function follow(node, reverse) {
-        var curve = [];
-        var begin = this;
+    static addSimilarEdge(m, n) {
+      if (!m.color.dissimilar(n.color)) {
+        m[m.relativePosition(n)] = n;
+        n[n.relativePosition(m)] = m;
+      }
+    }
 
-        while (begin.canReach(node) && begin.valence() < 3) {
-            if (reverse) {
-                curve.unshift(node);
-            } else {
-                curve.push(node);
-            }
+    addEdge(node) {
+      if (this.edges.indexOf(node) === -1) {
+        this.edges.push(node);
+        node.addEdge(this);
+      }
+    }
 
-            if (node.valence() > 2) {
-                break;
-            }
+    equals(node) {
+      return this.x === node.x && this.y === node.y;
+    }
 
-            var next = node.edges[0] != begin ? node.edges[0] : node.edges[1];
-            begin = node;
-            node = next;
+    removeEdge(node) {
+      var index = this.edges.indexOf(node);
+      if (index !== -1) {
+        this.edges.splice(index,1);
+        node.removeEdge(this);
+      }
+    }
 
-            if (node == this) {
-                break;
-            }
-        }
+    addSimilarEdge(node) {
+      if (!this.color.dissimilar(node.color)) {
+        this.addEdge(node);
+      }
+    }
 
-        return curve;
-    };
+    canReach(node) {
+      return this.edges.indexOf(node) != -1;
+    }
 
-    Node.prototype.edge = function edge(horizontal, vertical) {
-        return this.edges.find(function (e) {
-            return this.x === (e.x - Math.sign(horizontal)) && this.y === (e.y - Math.sign(vertical))
-        }, this);
-    };
+    valence() {
+      return this.edges.length;
+    }
 
-    Node.prototype.right = function right() {
-        return this.edges.find(function (e) {
-            return this.y === e.y && this.x === (e.x - 1)
-        }, this);
-    };
+    toString() {
+      var str = "(" + [this.x, this.y].join() + ") => ";
+      var edges = this.edges.map(function (n) { return "(" + [n.x, n.y].join() + ")"; });
+      return str + edges.join();
+    }
 
-    Node.prototype.left = function left() {
-        return this.edges.find(function (e) {
-            return this.y === e.y && this.x === (e.x + 1)
-        }, this);
-    };
+    edge(horizontal, vertical) {
+      return this.edges.find(function (e) {
+        return this.x === (e.x - Math.sign(horizontal)) && this.y === (e.y - Math.sign(vertical))
+      }, this);
+    }
 
-    Node.prototype.up = function up() {
-        return this.edges.find(function (e) {
-            return this.x === e.x && this.y === (e.y + 1)
-        }, this);
-    };
+    right() {
+      return this.edges.find(function (e) {
+        return this.y === e.y && this.x === (e.x - 1)
+      }, this);
+    }
 
-    Node.prototype.down = function down() {
-        return this.edges.find(function (e) {
-            return this.x === e.x && this.y === (e.y - 1)
-        }, this);
-    };
+    left() {
+      return this.edges.find(function (e) {
+        return this.y === e.y && this.x === (e.x + 1)
+      }, this);
+    }
 
-    Node.prototype.isEdge = function isEdge() {
-        return this.edges.length < 4;
-    };
+    up() {
+      return this.edges.find(function (e) {
+        return this.x === e.x && this.y === (e.y + 1)
+      }, this);
+    }
 
-    function Graph(pixels, x, y) {
-        if (pixels.length != x * y * 4) {
-            throw new Error("Wrong dimension of pixel buffer");
+    down() {
+      return this.edges.find(function (e) {
+        return this.x === e.x && this.y === (e.y - 1)
+      }, this);
+    }
+
+    isEdge() {
+      return this.edges.length < 4;
+    }
+
+    * follow(node) {
+      var begin = this;
+
+      while (begin.canReach(node) && begin.valence() < 3) {
+        yield node;
+
+        if (node.valence() > 2) {
+          break;
         }
 
-        this.width = x;
-        this.height = y;
-        var nodes = new Array(y);
-        var vertices = new Array(y + 1);
-        vertices[0] = new Array(x + 1);
+        var next = node.edges[0] != begin ? node.edges[0] : node.edges[1];
+        begin = node;
+        node = next;
 
-        for (var i = 0; i < x + 1; ++i) {
-            vertices[0][i] = new Vertex(i, 0);
+        if (node == this) {
+          break;
+        }
+      }
+    }
+  }
+
+  class LazyGraph {
+    constructor(pixels, width, height) {
+      this.pixels = pixels;
+      this.width = width;
+      this.height = height;
+    }
+
+    * createSimilarityGraph() {
+    }
+
+    pixel(x, y) {
+      var ix = y * this.width * 4 + x * 4;
+      return new Color(pixels.subarray(ix, ix + 3));
+    }
+
+    * nodes() {
+      var nodes, color, node, edge, x, y, i, j, t0, t1;
+      x = 0;
+      y = 0;
+
+      color = this.pixel(x, y);
+
+      for (i = 0; i < x; ++ i) {
+        nodes.push(new Node(i, y, this.pixel(i, y)));
+      }
+
+      nodes.push(new Node(i, y, this.pixel(i, y)));
+
+      for (j = 0; j < y - 1; ++ j) {
+        for (i = 0; i < x - 1; ++ i) {
+          node = nodes.shift();
+          t0 = new Node(i, j + 1, this.pixel(i, j + 1));
+          t1 = new Node(i + 1, j + 1, this.pixel(i + 1, j + 1));
+
+          yield node;
+        }
+      }
+
+
+      while (neighbours.length) {
+        node = nodes.shift();
+
+
+        for (let p of [0, 1, 2, 3]) {
+          edge = node[p];
+          edge && Node.addSimilarEdge(node, node[p]);
         }
 
-        for (var i = 0; i < y; ++i) {
-            var line = nodes[i] = new Array(x);
-            var top = vertices[i];
-            var bottom = vertices[i + 1] = new Array(x + 1);
-            bottom[0] = new Vertex(0, i + 1);
-            for (var j = 0; j < x; ++j) {
-                var ix = i * x * 4 + j * 4;
-                var color = pixels.subarray(ix, ix + 3);
-                bottom[j + 1] = new Vertex(j + 1, i + 1);
+        yield node;
+      }
+    }
+  }
 
-                var nodeVertices = [top[j], top[j + 1], bottom[j + 1], bottom[j]];
-                line[j] = new Node(j, i, new Color(color[0], color[1], color[2]), nodeVertices);
-            }
+  class Graph {
+    constructor(pixels, x, y) {
+      if (pixels.length != x * y * 4) {
+        throw new Error("Wrong dimension of pixel buffer");
+      }
+
+      this.width = x;
+      this.height = y;
+      var nodes = new Array(y);
+      var vertices = new Array(y + 1);
+      vertices[0] = new Array(x + 1);
+
+      for (var i = 0; i < x + 1; ++i) {
+        vertices[0][i] = new Vertex(i, 0);
+      }
+
+      for (var i = 0; i < y; ++i) {
+        var line = nodes[i] = new Array(x);
+        var top = vertices[i];
+        var bottom = vertices[i + 1] = new Array(x + 1);
+        bottom[0] = new Vertex(0, i + 1);
+        for (var j = 0; j < x; ++j) {
+          var ix = i * x * 4 + j * 4;
+          var color = pixels.subarray(ix, ix + 3);
+          bottom[j + 1] = new Vertex(j + 1, i + 1);
+
+          var nodeVertices = [top[j], top[j + 1], bottom[j + 1], bottom[j]];
+          line[j] = new Node(j, i, new Color(color), nodeVertices);
         }
+      }
 
-        this.nodes = nodes;
-        this.vertices = nodes;
-    };
+      this.nodes = nodes;
+      this.vertices = nodes;
+    }
 
-    Graph.prototype = Object.create(null, {
-        constructor : { enumerable : false, value : Graph },
-	iterator : { enumerable : false, value : function iterator() {
-	    var x = 0;
-	    var y = 0;
-	    var width = this.width;
-	    var height = this.height;
-	    var nodes = this.nodes;
-	    return Object.create(null, {
-		next : {
-		    enumerable : false,
-		    value : function next() {
-			while (y < height) {
-			    if (x < width) {
-				return nodes[y][x++];
-			    } else {
-				x = 0;
-				++y;
-			    }
-			}
-			return null;
-		    }
-		}
-	    });
-	}}
-    });
+    * iterator() {
+      var x, y;
+      var width = this.width;
+      var height = this.height;
+      var nodes = this.nodes;
+
+      for (y=0; y < height; ++y) {
+        for (x=0; x < width; ++x) {
+          yield nodes[y][x];
+        }
+      }
+    }
+  }
 
     var createNeighborAccessor = function(x, y) {
         var offsetX = x;
@@ -306,9 +347,9 @@ var depixel = (function() {
     var curve = function curve(nodes) {
         var m = nodes[0];
         var n = nodes[1];
-        var result = m.follow(n);
+        var result = Array.from(m.follow(n));
         if (right[right.length - 1] != m) {
-            result = n.follow(m).concat(result);
+            result = Array.from(n.follow(m)).concat(result);
         }
         return result;
     };
@@ -674,9 +715,9 @@ var depixel = (function() {
     Graph.prototype.paths = function paths(contour) {
         var p = new Path();
 
-        
+
     }
-    
+
     return function depixel(data, width, height) {
         var graph = new Graph(data, width, height);
     //  graph.createSimilarityGraph();

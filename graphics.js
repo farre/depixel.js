@@ -9,9 +9,7 @@ function drawCanvas(graph, scale, reshaped, similar) {
     var context = canvas.getContext('2d');
     context.strokeStyle = "black";
 
-    var it = graph.iterator();
-    var node = null;
-    while (node = it.next()) {
+    for (let node of graph.iterator()) {
         var stroke_color = 'rgba(255,75,75,255)';
         context.strokeStyle = "" + stroke_color;
         context.fillStyle = "" + node.color;
