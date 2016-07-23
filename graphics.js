@@ -9,7 +9,7 @@ function drawCanvas(graph, scale, reshaped, similar) {
     var context = canvas.getContext('2d');
     context.strokeStyle = "black";
 
-    for (let node of graph.iterator()) {
+    for (let node of graph.nodes()) {
         var stroke_color = 'rgba(255,75,75,255)';
         context.strokeStyle = "" + stroke_color;
         context.fillStyle = "" + node.color;
@@ -33,8 +33,7 @@ function drawCanvas(graph, scale, reshaped, similar) {
         var x = node.x * scale + half_scale;
         var y = node.y * scale + half_scale;
 
-        for (var e = 0; e < node.edges.length; ++e) {
-            var n = node.edges[e];
+        for (let n of node.edges.filter(x => x)) {
             context.moveTo(x, y);
             context.lineTo(n.x * scale + half_scale, n.y * scale + half_scale);
         }
