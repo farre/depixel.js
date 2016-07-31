@@ -339,6 +339,32 @@ var depixel = (function() {
       }
     }
 
+    * diagonals() {
+      var x, y, line0, line1;
+      let {width, height, nodes_old: nodes } = this;
+      for (y=1; y < height; ++y) {
+        line0 = nodes[y - 1];
+        line1 = nodes[y];
+        for (x=1; x < width; ++x) {
+          let n0 = line0[x - 1];
+          let n1 = line0[x];
+          let n2 = line1[x - 1];
+          let n3 = line1[x];
+
+          if (n0.canReach(n1) ||
+              n0.canReach(n2) ||
+              n3.canReach(n1) ||
+              n3.canReach(n2)) {
+            continue;
+          }
+
+          if (n0.canReach(n3) && n1.canReach(n2)) {
+              yield [[n0, n3], [n2, n1]];
+          }
+        }
+      }
+    }
+
     pixel(x, y) {
       let i = y * this.width * 4 + x * 4;
       return new Color(this.pixels.subarray(i, i + 3));
