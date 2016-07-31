@@ -81,7 +81,6 @@ var depixel = (function() {
       } else if (this[this.length - 1] === node) {
         this.pop();
       } else if (this.circular) {
-        debugger
         for (let other = this.shift(); other !== node; other = this.shift()) {
           this.push(other);
         }
@@ -126,6 +125,10 @@ var depixel = (function() {
         pushfn.call(keep, node);
         node.curve = keep;
       }
+    }
+
+    static curve(m, n) {
+      return (m.curve === n.curve) ? m.curve.length : 0;
     }
   }
 
@@ -395,16 +398,6 @@ var depixel = (function() {
     return !x;
   };
 
-  var curve = function curve(nodes) {
-    var m = nodes[0];
-    var n = nodes[1];
-    var result = Array.from(m.follow(n));
-    if (right[right.length - 1] != m) {
-      result = Array.from(n.follow(m)).concat(result);
-    }
-    return result;
-  };
-
   var getConnected = function getConnected(xmin, xmax, ymin, ymax) {
     var x0 = xmin;
     var x1 = xmax;
@@ -433,11 +426,10 @@ var depixel = (function() {
         if (square.every(not)) {
           var diagonals = this.getDiagonals(x - 1, y - 1);
           var heuristics = [0, 0];
-          // computing curves this way will generate a lot of curves.
-          var curves = diagonals.map(curve);
           var connecteds = diagonals.map(getConnected(x - 3, x + 2, y - 3, y + 2));
 
-          var lengthHeuristic = curves[0].length - curves[1].length;
+          var curves = diagonals.map(function(nodes) { return Curve.curve(nodes[0], nodes[1])});
+          var lengthHeuristic = curves[0] - curves[1];
           if (lengthHeuristic > 0) {
             heuristics[0] += lengthHeuristic;
           } else {
