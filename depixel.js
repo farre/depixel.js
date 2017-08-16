@@ -742,7 +742,6 @@ var depixel = (function() {
 
   return function depixel(data, width, height) {
     var graph = new Graph(data, width, height);
-    //  graph.createSimilarityGraph();
-    return graph;
+    return graph.createSimilarityGraph().linearize();
   };
 })();
