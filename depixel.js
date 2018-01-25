@@ -267,6 +267,7 @@ var depixel = (function() {
       this.width = x;
       this.height = y;
       this.pixels = pixels;
+      this.createSimilarityGraph().linearize();
     }
 
     * create() {
@@ -283,9 +284,11 @@ var depixel = (function() {
 
       const dissimilarNode = new Node();
       let seen = new Array(x).fill(dissimilarNode);
+      let result = new Array(4)
 
       for (var i = 0; i < y; ++i) {
-        let previous = [dissimilarNode, dissimilarNode];
+        result[0] = dissimilarNode;
+        result[1] = dissimilarNode;
         let line = nodes[i] = new Array(x);
         let top = vertices[i];
         let bottom = vertices[i + 1] = new Array(x + 1);
@@ -296,9 +299,10 @@ var depixel = (function() {
           var nodeVertices = [top[j], top[j + 1], bottom[j + 1], bottom[j]];
           var node = line[j] = new Node(j, i, this.pixel(j, i), nodeVertices);
 
-          let current = [seen[j], node];
-          yield [previous, current];
-          previous = current;
+          result[2] = seen[j];
+          result[3] = node;
+          yield result;
+          result = result.slice(2);
         }
         seen = line;
       }
@@ -308,7 +312,7 @@ var depixel = (function() {
     }
 
     createSimilarityGraph() {
-      for (let [[a, b], [c, d]] of this.create()) {
+      for (let [a, b, c, d] of this.create()) {
         Node.addSimilarEdge(c, d);
         Node.addSimilarEdge(b, d);
 
@@ -742,6 +746,45 @@ var depixel = (function() {
 
   return function depixel(data, width, height) {
     var graph = new Graph(data, width, height);
-    return graph.createSimilarityGraph().linearize();
+    return graph;
   };
 })();
+
+class Depixelizer {
+  constructor() {
+    this.canvas = document.createElement('canvas');
+  }
+}
+
+function depixel2(image, scale) {
+  const canvas = Object.assign(document.createElement('canvas'), {
+    width: image.naturalWidth,
+    height: image.naturalHeigth
+  });
+
+  const context = canvas.getContext('2d');
+  context.drawImage(image, 0, 0);
+
+  const data = context.getImageData(0, 0, canvas.width, canvas.height);
+  createCanvas(depixel(data.data, data.width, data.height).createSimilarityGraph().linearize(), scale);
+}
+
+let depixelizer = {
+  canvas: document.createElement('canvas'),
+
+  depixel: function depixel(image, scale) {
+    const width = image.naturalWidth;
+    const height = image.naturalHeight;
+    const canvas = Object.assign(document.createElement('canvas'), {
+      width: image.width,
+      height: image.heigth
+    });
+    const context = canvas.getContext('2d');
+
+    context.drawImage(image, 0, 0);
+
+    const data = context.getImageData(0, 0, width, height);
+    const worker = new Worker("depixel.worker.js");
+    worker.postMessage(data);
+  }
+};

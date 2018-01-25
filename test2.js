@@ -215,8 +215,23 @@ var fn = function (g, i) {
     createCanvas(g, 20);
 };
 
+function depixel2(image, scale) {
+  const width = image.width;
+  const height = image.height;
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+
+  canvas.width = width;
+  canvas.height = height;
+  context.drawImage(image, 0, 0);
+
+  let data = context.getImageData(0, 0, width, height).data;
+  createCanvas(depixel(data, width, height).createSimilarityGraph().linearize(), scale);
+}
+
 createCanvas(depixel(new Uint8Array(data10), 5, 6), 20);
 
+depixel2(document.getElementById('image'), 10);
 /*
 document.body.appendChild(drawCanvas(graph, 20));
 graph.createSimilarityGraph();

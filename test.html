@@ -1,0 +1,24 @@
+<script src="depixel.worker.js"></script>
+
+<script>
+  const depixelizer = {
+    run: function run(image, scale) {
+      const canvas = Object.assign(document.createElement('canvas'), {
+        width: image.naturalWidth,
+        height: image.naturalHeight
+      });
+      const context = canvas.getContext('2d');
+
+      context.drawImage(image, 0, 0);
+
+      const data = context.getImageData(0, 0, canvas.width, canvas.height);
+      depixel(data.data, data.width, data.height);
+    }
+  };
+
+  function run() {
+    depixelizer.run(document.getElementById('image'), 2);
+  }
+</script>
+
+<img id="image" src="small.png" onload="run()"><br />
